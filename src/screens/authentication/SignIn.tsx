@@ -6,13 +6,11 @@ import * as yup from 'yup';
 
 import {AuthenticationStackParamList} from '../../navigators/Authentication';
 import {Colors} from '../../Colors';
-import {Text} from '../../components/Text';
 import {TextInput} from '../../components/TextInput';
 import {Block} from '../../components/Button/Block';
-import {Pressable} from '../../components/Pressable';
-import {Font} from '../../Fonts';
 import {AuthenticationHeader} from './component/AuthenticationHeader';
 import {useAuthentication} from '../../context/Auth';
+import {KeyboardAwareScrollView} from '../../components/KeyboardAwareScrollView';
 
 type NavigationProps = NavigationProp<AuthenticationStackParamList, 'SignIn'>;
 
@@ -40,14 +38,25 @@ export const SignIn = () => {
     handleChange,
     handleBlur,
     handleSubmit,
+    isSubmitting,
+    setFieldError,
+    setSubmitting,
   } = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: async (form: FormProps) => {
-      await signInWithPhoneNumber(form.phoneNumber);
-      navigate('Verification', {
-        email: form.phoneNumber,
-      });
+      setSubmitting(true);
+      signInWithPhoneNumber(form.phoneNumber)
+        .then(() => {
+          setSubmitting(false);
+          navigate('Verification', {
+            email: form.phoneNumber,
+          });
+        })
+        .catch(e => {
+          setSubmitting(false);
+          setFieldError('phoneNumber', e);
+        });
     },
     validateOnBlur: true,
     validateOnChange: false,
@@ -55,7 +64,7 @@ export const SignIn = () => {
 
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.container}>
         <AuthenticationHeader
           firstTitle={'Welcome to'}
           mainTitle={'Fuel Q'}
@@ -78,33 +87,14 @@ export const SignIn = () => {
           />
         </View>
         <View style={styles.button}>
-          <Block disabled={isValid} onPress={handleSubmit}>
+          <Block
+            isSubmitting={isSubmitting}
+            disabled={isValid}
+            onPress={handleSubmit}>
             Sign In
           </Block>
         </View>
-      </ScrollView>
-      <View style={styles.bottomContainer}>
-        <Pressable
-          onPress={() => {
-            navigate('ForgotPassword', {
-              email: values.email,
-            });
-          }}
-          style={styles.buttonLeft}>
-          <Text style={[styles.buttonBottomText, styles.buttonLeftText]}>
-            Forgot Password
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            navigate('SignUp');
-          }}
-          style={styles.buttonRight}>
-          <Text style={[styles.buttonBottomText, styles.buttonRightText]}>
-            Sign Up
-          </Text>
-        </Pressable>
-      </View>
+      </KeyboardAwareScrollView>
     </View>
   );
 };
@@ -124,28 +114,4 @@ const styles = StyleSheet.create({
   },
   inputContainer: {marginTop: '20%'},
   button: {marginTop: '20%'},
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 0,
-    height: 100,
-    width: '100%',
-    paddingBottom: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignContent: 'center',
-    alignItems: 'center',
-  },
-  buttonLeft: {paddingLeft: 24},
-  buttonRight: {
-    paddingRight: 24,
-  },
-  buttonBottomText: {
-    fontFamily: Font.Medium,
-  },
-  buttonLeftText: {
-    color: Colors.Primary.Navy,
-  },
-  buttonRightText: {
-    color: Colors.Primary.Blue,
-  },
 });

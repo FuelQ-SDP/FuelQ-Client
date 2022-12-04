@@ -18,6 +18,7 @@ type NavigationProps = NavigationProp<
   AuthenticationStackParamList,
   'Verification'
 >;
+
 type RouteProps = RouteProp<AuthenticationStackParamList, 'Verification'>;
 
 export const Verification = () => {
@@ -26,7 +27,7 @@ export const Verification = () => {
   const {
     params: {email},
   } = useRoute<RouteProps>();
-  const [code, setCode] = useState('123456');
+  const [code, setCode] = useState('');
 
   return (
     <View style={styles.root}>
@@ -39,7 +40,9 @@ export const Verification = () => {
         <View style={styles.inputContainer}>
           <OTPInput
             code={code}
-            onCodeFilled={_code => setCode(_code)}
+            onCodeChanged={_code => {
+              setCode(_code);
+            }}
             onRequestResend={() => {}}
           />
         </View>
@@ -47,7 +50,6 @@ export const Verification = () => {
           <Block
             onPress={() => {
               confirmCode(code);
-              // navigate('AccountDetails');
             }}>
             Continue
           </Block>
@@ -65,7 +67,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 24,
   },
-
   inputContainer: {marginTop: '20%', flexDirection: 'row', flex: 1},
   button: {marginTop: '20%'},
 });
